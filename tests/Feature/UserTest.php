@@ -152,4 +152,70 @@ class UserTest extends TestCase
             ]
         ]);
     }
+
+    public function testUpdatePasswordSuccess()
+    {
+        $this->seed([UserSeeder::class]);
+        $oldUser = User::where('username', 'test')->first();
+
+        $this->patch(
+            '/api/users/current',
+            [
+                'password' => 'baru'
+            ],
+            [
+                'Authorization' => 'test',
+            ]
+        )->assertStatus(200)->assertJson([
+            'data' => [
+                'username' => 'test',
+                'name' => 'test'
+            ]
+        ]);
+
+        $newUser = User::where('username', 'test')->first();
+        self::assertNotEquals($oldUser->password, $newUser->password);
+    }
+
+    public function testUpdateNameSuccess()
+    {
+        $this->seed([UserSeeder::class]);
+        $oldUser = User::where('username', 'test')->first();
+
+        $this->patch(
+            '/api/users/current',
+            [
+                'name' => 'anton'
+            ],
+            [
+                'Authorization' => 'test',
+            ]
+        )->assertStatus(200)->assertJson([
+            'data' => [
+                'username' => 'test',
+                'name' => 'anton'
+            ]
+        ]);
+
+        $newUser = User::where('username', 'test')->first();
+        self::assertNotEquals($oldUser->name, $newUser->name);
+    }
+    public function testUpdateFailed()
+    {
+        $this->seed([UserSeeder::class]);
+
+        $this->patch(
+            '/api/users/current',
+            [
+                'name' => 'antonantonantonantonantonantonantonantonantonantonantonantonantonantonantonantonantonantonantonantonantonantonantonantonantonantonantonantonantonantonantonantonantonantonantonantonantonantonantonantonantonantonantonantonantonantonantonanton'
+            ],
+            [
+                'Authorization' => 'test',
+            ]
+        )->assertStatus(400)->assertJson([
+            'errors' => [
+                'name' => ["The name field must not be greater than 100 characters."]
+            ]
+        ]);
+    }
 }
