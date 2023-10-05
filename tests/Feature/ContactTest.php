@@ -5,7 +5,9 @@ namespace Tests\Feature;
 use Tests\TestCase;
 use App\Models\Contact;
 use Database\Seeders\UserSeeder;
+use Database\Seeders\SearchSeeder;
 use Database\Seeders\ContactSeeder;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -187,5 +189,90 @@ class ContactTest extends TestCase
                     ["message" => ["not found"]]
                 ]
             );
+    }
+
+    // search
+    public function testSearchByFirstName()
+    {
+        $this->seed([UserSeeder::class, SearchSeeder::class]);
+
+        $response = $this->get('/api/contacts?name=first', ['Authorization' => 'test'])
+            ->assertStatus(200)
+            ->json();
+
+        Log::info(json_encode($response, JSON_PRETTY_PRINT));
+
+        self::assertEquals(10, count($response['data']));
+        self::assertEquals(20, $response['meta']['total']);
+    }
+    public function testSearchByLastName()
+    {
+        $this->seed([UserSeeder::class, SearchSeeder::class]);
+
+        $response = $this->get('/api/contacts?name=last', ['Authorization' => 'test'])
+            ->assertStatus(200)
+            ->json();
+
+        Log::info(json_encode($response, JSON_PRETTY_PRINT));
+
+        self::assertEquals(10, count($response['data']));
+        self::assertEquals(20, $response['meta']['total']);
+    }
+
+    public function testSearchByEmail()
+    {
+        $this->seed([UserSeeder::class, SearchSeeder::class]);
+
+        $response = $this->get('/api/contacts?email=test', ['Authorization' => 'test'])
+            ->assertStatus(200)
+            ->json();
+
+        Log::info(json_encode($response, JSON_PRETTY_PRINT));
+
+        self::assertEquals(10, count($response['data']));
+        self::assertEquals(20, $response['meta']['total']);
+    }
+
+    public function testSearchByPhone()
+    {
+        $this->seed([UserSeeder::class, SearchSeeder::class]);
+
+        $response = $this->get('/api/contacts?name=tidakada', ['Authorization' => 'test'])
+            ->assertStatus(200)
+            ->json();
+
+        Log::info(json_encode($response, JSON_PRETTY_PRINT));
+
+        self::assertEquals(0, count($response['data']));
+        self::assertEquals(0, $response['meta']['total']);
+    }
+
+    public function testSearchNotFound()
+    {
+        $this->seed([UserSeeder::class, SearchSeeder::class]);
+
+        $response = $this->get('/api/contacts?phone=0812312312', ['Authorization' => 'test'])
+            ->assertStatus(200)
+            ->json();
+
+        Log::info(json_encode($response, JSON_PRETTY_PRINT));
+
+        self::assertEquals(10, count($response['data']));
+        self::assertEquals(20, $response['meta']['total']);
+    }
+
+    public function testSearchWithPage()
+    {
+        $this->seed([UserSeeder::class, SearchSeeder::class]);
+
+        $response = $this->get('/api/contacts?size=5&page=2', ['Authorization' => 'test'])
+            ->assertStatus(200)
+            ->json();
+
+        Log::info(json_encode($response, JSON_PRETTY_PRINT));
+
+        self::assertEquals(5, count($response['data']));
+        self::assertEquals(20, $response['meta']['total']);
+        self::assertEquals(2, $response['meta']['current_page']);
     }
 }
