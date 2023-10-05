@@ -152,4 +152,40 @@ class ContactTest extends TestCase
             'first_name' => ['The first name field is required.'],
         ]]);
     }
+
+    // test delete
+    public function testDeleteSuccess()
+    {
+        $this->seed([UserSeeder::class, ContactSeeder::class]);
+
+        $contact = Contact::query()->limit(1)->first();
+
+        $this->delete(
+            '/api/contacts/' . $contact->id,
+            [],
+            [
+                'Authorization' => 'test'
+            ]
+        )->assertStatus(200)->assertJson(["data" => true]);
+    }
+    public function testDeleteNotFound()
+    {
+        $this->seed([UserSeeder::class, ContactSeeder::class]);
+
+        $contact = Contact::query()->limit(1)->first();
+
+        $this->delete(
+            '/api/contacts/' . ($contact->id + 1),
+            [],
+            [
+                'Authorization' => 'test'
+            ]
+        )->assertStatus(404)
+            ->assertJson(
+                [
+                    "errors" =>
+                    ["message" => ["not found"]]
+                ]
+            );
+    }
 }
